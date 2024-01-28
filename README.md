@@ -14,3 +14,31 @@ Since TypeScript cannot handle type information for `.vue` imports, they are shi
 2. Reload the VS Code window by running `Developer: Reload Window` from the command palette.
 
 You can learn more about Take Over mode [here](https://github.com/johnsoncodehk/volar/discussions/471).
+
+
+### 配置文件
+
+live2d资源里有一种.exp3.json， 这些文件是不同的表情文件，里面的内容实际上就是改变人物的不同参数，让人物做出对应的样子。
+有可能设计师输出的.model3.json文件没有把这些表情文件加入到配置中，需要自己配置一下
+
+```
+{
+    Version: 3,
+    FileReferences: {
+        Moc: "xxx.moc3",
+        Textures: [
+            "xxx.8192/texture_00.png"
+        ],
+        Physics: "xxx.physics3.json",
+        DisplayInfo: "xxx.cdi3.json",
+
+        // 这个字段，代表所有的表情，如果原本没有到话，可以自己添加上
+        Expressions: [
+            {
+                Name: "开心", // 表情的名称，调用model.expression时的入参
+                File: "开心.exp3.json"
+            }
+        ]
+    }
+} 
+```

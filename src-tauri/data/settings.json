@@ -1,0 +1,13 @@
+{
+  "click_through": true,
+  "model_url": "https://cdn.jsdelivr.net/gh/journey-ad/blog-img/live2d/Diana/Diana.model3.json",
+  "model_x": 0,
+  "model_voice": true,
+  "model_y": null,
+  "pos_y": 64,
+  "stay_top": true,
+  "win_h": 650,
+  "model_scale": 0.1,
+  "win_w": 800,
+  "pos_x": 64
+}
