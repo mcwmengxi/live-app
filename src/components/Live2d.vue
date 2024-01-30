@@ -1,11 +1,23 @@
 <template>
-  <div class="w-full h-full border border-gray-100 border-dashed static">
-    <canvas ref="live2d_canvas" class="w-full h-full"></canvas>
+  <div
+    data-tauri-drag-region
+    @click="isHovered = !isHovered"
+    class="w-full h-full border border-transparent border-dashed static visible"
+  >
+    <canvas
+      data-tauri-drag-region
+      ref="live2d_canvas"
+      class="w-full h-full"
+    ></canvas>
     <div
-      class="absolute inset-y-0 flex flex-col right-0 mx-4 my-4 py-4 px-2 space-y-4 backdrop-blur-3xl bg-white/30"
+      class="absolute inset-y-0 flex flex-col right-0 mx-4 my-4 py-4 px-2 space-y-4 backdrop-blur-3xl hover:bg-white/30"
     >
-      <ul v-if="isModelReady" data-tauri-drag-region>
-        <li class="w-8 h-8" @click="reload">
+      <ul v-if="isModelReady">
+        <li
+          class="w-8 h-8 color-transparent"
+          :class="isHovered ? 'color-gray' : ''"
+          @click="reload"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -46,7 +58,7 @@ const sModelVoice = ref((await store.get('model_voice')) as boolean)
 const sModelScale = ref((await store.get('model_scale')) as number)
 const sModelX = ref((await store.get('model_x')) as number)
 const sModelY = ref((await store.get('model_y')) as number)
-
+const isHovered = ref(false)
 console.log('modelURL:', modelURL)
 console.log(store, 12)
 var isModelReady = ref(false)
