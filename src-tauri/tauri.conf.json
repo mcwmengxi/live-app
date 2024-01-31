@@ -37,6 +37,9 @@
     "security": {
       "csp": null
     },
+    "systemTray": {
+      "iconPath": "icons/icon.ico"
+    },
     "windows": [
       {
         "fullscreen": false,
