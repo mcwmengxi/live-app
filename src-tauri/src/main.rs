@@ -25,14 +25,64 @@ fn main() {
         .on_system_tray_event(tray::handler)
         .plugin(tauri_plugin_store::Builder::default().build())
         .setup(|app| {
+            let main_window = app.get_window("main");
+            let window = main_window.unwrap();
+
+            // 读取并设置窗口大小: std::path::PathBuf和位置的信息
             let stores = app.state::<StoreCollection<Wry>>();
             let mut data = app.path_resolver().resource_dir().unwrap();
             data.push("data/settings.json");
-            // dbg!("data dir: {}", data);
+
+            // 窗口大小和位置信息
+            let mut win_w: u32 = 0;
+            let mut win_h: u32 = 0;
+            let mut pos_x: i32 = 0;
+            let mut pos_y: i32 = 0;
+
+            let mut click_through: bool = false;
+            let mut stay_top: bool = true;
+            let mut is_mmd: bool = false;
 
             with_store(app.app_handle(), stores, data, |store| {
-                store.insert("a".to_string(), json!("b"))
+                win_w = match store.get("win_w") {
+                    Some(v) => v.as_u64().unwrap() as u32,
+                    None => 200,
+                };
+                win_h = match store.get("win_h") {
+                    None => 150,
+                    Some(v) => v.as_u64().unwrap() as u32,
+                };
+                pos_x = match store.get("pos_x") {
+                    Some(v) => v.as_i64().unwrap() as i32,
+                    None => 10,
+                };
+                pos_y = match store.get("pos_y") {
+                    Some(v) => v.as_i64().unwrap() as i32,
+                    None => 900,
+                };
+                click_through = match store.get("click_through") {
+                    Some(v) => v.as_bool().unwrap(),
+                    None => false,
+                };
+                stay_top = match store.get("stay_top") {
+                    Some(v) => v.as_bool().unwrap(),
+                    None => true,
+                };
+                is_mmd = match store.get("is_mmd") {
+                    Some(v) => v.as_bool().unwrap(),
+                    None => false,
+                };
+                store.save()
             });
+
+            // 设置其他信息
+            window.set_ignore_cursor_events(click_through).unwrap();
+            window.set_always_on_top(stay_top).unwrap();
+            
+            // 设置系统托盘
+
+            // 打开控制台窗口
+            window.open_devtools();
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![greet])

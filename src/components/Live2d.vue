@@ -14,24 +14,19 @@
     >
       <ul v-if="isModelReady">
         <li
-          class="w-8 h-8 color-transparent"
+          class="w-8 h-6 color-transparent hover:color-gray"
           :class="isHovered ? 'color-gray' : ''"
           @click="reload"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            class="w-6 h-6"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
-            />
-          </svg>
+          <ArrowPathIcon class="w-6 h-6" />
+        </li>
+        <li
+          class="w-8 h-8 color-transparent hover:color-gray"
+          :class="isHovered ? 'color-gray' : ''"
+          
+        >
+          <SpeakerWaveIcon v-if="sModelVoice" class="w-6 h-6"  @click="changeModelVoice(!sModelVoice)"/>
+          <SpeakerXMarkIcon v-else class="w-6 h-6"  @click="changeModelVoice(!sModelVoice)"/>
         </li>
       </ul>
     </div>
@@ -40,11 +35,12 @@
 
 <script setup lang="ts">
 import { listen } from '@tauri-apps/api/event'
-import { Live2DModel } from 'pixi-live2d-display/cubism4'
+import { Live2DModel, config } from 'pixi-live2d-display/cubism4'
 import * as PIXI from 'pixi.js'
 import { onBeforeMount, onBeforeUnmount, onMounted, ref } from 'vue'
 import { join, resourceDir } from '@tauri-apps/api/path'
 import { Store } from 'tauri-plugin-store-api'
+import { ArrowPathIcon, SpeakerWaveIcon, SpeakerXMarkIcon } from '@heroicons/vue/16/solid'
 
 //Cubism2.1需要加载live2d.min.js
 
@@ -71,6 +67,12 @@ const model = Live2DModel.fromSync(
 )
 function reload() {
   location.reload()
+}
+async function changeModelVoice(openVoice: boolean) {
+  sModelVoice.value = openVoice
+  config.sound = openVoice
+  await store.set('model_voice', sModelVoice.value)
+  await store.save()
 }
 function openSettings() {
   console.log('openSettings')

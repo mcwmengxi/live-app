@@ -6,7 +6,6 @@ use tauri::{
 // 托盘菜单
 pub fn menu() -> SystemTray {
     let quit = CustomMenuItem::new("quit".to_string(), "退出");
-    let show = CustomMenuItem::new("show".to_string(), "显示");
     let hide = CustomMenuItem::new("hide".to_string(), "隐藏");
     let tray_menu = SystemTrayMenu::new()
         .add_submenu(SystemTraySubmenu::new(
@@ -18,8 +17,7 @@ pub fn menu() -> SystemTray {
         .add_native_item(SystemTrayMenuItem::Separator)
         .add_item(quit)
         .add_native_item(SystemTrayMenuItem::Separator)
-        .add_item(hide)
-        .add_item(show);
+        .add_item(hide);
 
     // 设置在右键单击系统托盘时显示菜单
     return SystemTray::new().with_menu(tray_menu);
@@ -54,16 +52,21 @@ pub fn handler(app: &AppHandle, event: SystemTrayEvent) {
             );
         }
         SystemTrayEvent::MenuItemClick { id, .. } => {
+            let item_handle = app.tray_handle().get_item(&id);
+
             match id.as_str() {
                 "quit" => {
                     std::process::exit(0);
                     // app.exit(0);
                 }
-                "show" => {
-                    window.show().unwrap();
-                }
                 "hide" => {
-                    window.hide().unwrap();
+                    if !window.is_visible().unwrap() {
+                        window.show().unwrap();
+                        item_handle.set_title("隐藏").unwrap();
+                    } else {
+                        window.hide().unwrap();
+                        item_handle.set_title("显示").unwrap();
+                    }
                 }
                 _ => {}
             }
