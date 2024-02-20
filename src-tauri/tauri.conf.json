@@ -2,7 +2,7 @@
   "build": {
     "beforeDevCommand": "pnpm dev",
     "beforeBuildCommand": "pnpm build",
-    "devPath": "http://localhost:1421",
+    "devPath": "http://localhost:5137",
     "distDir": "../dist"
   },
   "package": {
@@ -19,12 +19,17 @@
       "window": {
         "startDragging": true,
         "setDecorations": false
+      },
+      "protocol": {
+        "all": true,
+        "asset": true,
+        "assetScope": ["**"]
       }
     },
     "bundle": {
       "active": true,
       "targets": "all",
-      "identifier": "com.tauri.dev",
+      "identifier": "com.tauri.build",
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",
@@ -32,10 +37,10 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "resources": ["data"]
+      "resources": ["data","mmd"]
     },
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; asset: https://asset.localhost;"
     },
     "systemTray": {
       "iconPath": "icons/icon.ico"
