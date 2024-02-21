@@ -1,7 +1,5 @@
 <template>
   <div class="w-full h-full p-1">
-    123
-
     <canvas ref="mmd_canvas" class="w-full h-full"></canvas>
   </div>
 </template>

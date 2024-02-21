@@ -17,7 +17,7 @@ onMounted(async () => {
 <template>
   <div class="">
     <Suspense>
-      <Live2d v-if="isMMD" />
+      <Live2d v-if="!isMMD" />
       <MMD v-else />
       <template #fallback>
         <p>Loading...</p>

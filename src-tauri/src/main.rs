@@ -2,7 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use serde_json::json;
-use tauri::{Manager, Wry};
+use tauri::{Manager, PhysicalSize, Size, Wry};
 use tauri_plugin_store::{with_store, StoreCollection};
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
@@ -46,7 +46,7 @@ fn main() {
             with_store(app.app_handle(), stores, data, |store| {
                 win_w = match store.get("win_w") {
                     Some(v) => v.as_u64().unwrap() as u32,
-                    None => 200,
+                    None => 2200,
                 };
                 win_h = match store.get("win_h") {
                     None => 150,
@@ -72,13 +72,23 @@ fn main() {
                     Some(v) => v.as_bool().unwrap(),
                     None => false,
                 };
-                store.save()
-            });
+                // store.save()
+                Ok(())
+            })
+            .unwrap();
 
             // 设置其他信息
             window.set_ignore_cursor_events(click_through).unwrap();
             window.set_always_on_top(stay_top).unwrap();
-            
+            println!("is_mmd: {}", win_w);
+            if is_mmd {
+                let size = Size::Physical(PhysicalSize {
+                    width: win_w * 7,
+                    height: win_h * 7,
+                });
+
+                window.set_size(size).unwrap();
+            }
             // 设置系统托盘
 
             // 打开控制台窗口

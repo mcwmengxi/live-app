@@ -16,6 +16,7 @@ tauri-build = { version = "1.5", features = [] }
 tauri = { version = "1.5", features = [ "system-tray", "api-all"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+# tauri-plugin-store = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
 tauri-plugin-store = { git = "https://mirror.ghproxy.com/https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
 
 [features]
