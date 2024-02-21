@@ -23,10 +23,17 @@
         <li
           class="w-8 h-8 color-transparent hover:color-gray"
           :class="isHovered ? 'color-gray' : ''"
-          
         >
-          <SpeakerWaveIcon v-if="sModelVoice" class="w-6 h-6"  @click="changeModelVoice(!sModelVoice)"/>
-          <SpeakerXMarkIcon v-else class="w-6 h-6"  @click="changeModelVoice(!sModelVoice)"/>
+          <SpeakerWaveIcon
+            v-if="sModelVoice"
+            class="w-6 h-6"
+            @click="changeModelVoice(!sModelVoice)"
+          />
+          <SpeakerXMarkIcon
+            v-else
+            class="w-6 h-6"
+            @click="changeModelVoice(!sModelVoice)"
+          />
         </li>
       </ul>
     </div>
@@ -40,7 +47,11 @@ import * as PIXI from 'pixi.js'
 import { onBeforeMount, onBeforeUnmount, onMounted, ref } from 'vue'
 import { join, resourceDir } from '@tauri-apps/api/path'
 import { Store } from 'tauri-plugin-store-api'
-import { ArrowPathIcon, SpeakerWaveIcon, SpeakerXMarkIcon } from '@heroicons/vue/16/solid'
+import {
+  ArrowPathIcon,
+  SpeakerWaveIcon,
+  SpeakerXMarkIcon
+} from '@heroicons/vue/16/solid'
 
 //Cubism2.1需要加载live2d.min.js
 

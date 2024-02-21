@@ -2,7 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use serde_json::json;
-use tauri::{Manager, PhysicalSize, Size, Wry};
+use tauri::{Manager, PhysicalSize,PhysicalPosition, Position, Size, Wry};
 use tauri_plugin_store::{with_store, StoreCollection};
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
@@ -11,18 +11,10 @@ fn greet(name: &str) -> String {
 }
 
 mod tray;
+
+
 fn main() {
     tauri::Builder::default()
-        .system_tray(
-            tray::menu(), // tauri::SystemTray::new()
-                          // .icon("icon.png")
-                          // .menu(&[
-                          //     tauri::SystemTrayMenuItem::normal("Open", "Open the app"),
-                          //     tauri::SystemTrayMenuItem::normal("Quit", "Quit the app"),
-                          // ])
-                          // .on_menu_item_select()
-        )
-        .on_system_tray_event(tray::handler)
         .plugin(tauri_plugin_store::Builder::default().build())
         .setup(|app| {
             let main_window = app.get_window("main");
@@ -72,7 +64,8 @@ fn main() {
                     Some(v) => v.as_bool().unwrap(),
                     None => false,
                 };
-                // store.save()
+                println!("{is_mmd}");
+                store.save();
                 Ok(())
             })
             .unwrap();
@@ -83,11 +76,15 @@ fn main() {
             println!("is_mmd: {}", win_w);
             if is_mmd {
                 let size = Size::Physical(PhysicalSize {
-                    width: win_w * 7,
-                    height: win_h * 7,
+                    width: win_w * 3,
+                    height: win_h * 6,
                 });
-
+                let pos = Position::Physical(PhysicalPosition {
+                  x: pos_x,
+                  y: pos_y-700,
+                });
                 window.set_size(size).unwrap();
+                window.set_position(pos).unwrap();
             }
             // 设置系统托盘
 
@@ -95,6 +92,16 @@ fn main() {
             window.open_devtools();
             Ok(())
         })
+        .system_tray(
+            tray::menu(), // tauri::SystemTray::new()
+                          // .icon("icon.png")
+                          // .menu(&[
+                          //     tauri::SystemTrayMenuItem::normal("Open", "Open the app"),
+                          //     tauri::SystemTrayMenuItem::normal("Quit", "Quit the app"),
+                          // ])
+                          // .on_menu_item_select()
+        )
+        .on_system_tray_event(tray::handler)
         .invoke_handler(tauri::generate_handler![greet])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

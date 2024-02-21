@@ -104,8 +104,9 @@ export class SceneBuilder implements ISceneBuilder {
     mmdRuntime.setAudioPlayer(audioPlayer)
     mmdRuntime.playAnimation()
 
-    const mmdPlayerControl = new MmdPlayerControl(scene, mmdRuntime, audioPlayer)
-    mmdPlayerControl.showPlayerControl()
+    // 播放控制器
+    // const mmdPlayerControl = new MmdPlayerControl(scene, mmdRuntime, audioPlayer)
+    // mmdPlayerControl.showPlayerControl()
 
     engine.displayLoadingUI()
 
@@ -214,7 +215,7 @@ export class SceneBuilder implements ISceneBuilder {
     textblock.widthInPixels = 500
     textblock.heightInPixels = 110
     textblock.left = 10
-    textblock.text = 'メランコリ・ナイト / melancholy night feat.初音ミク\n\nMusic & Lyrics by higma\nMotion by ほうき堂\nModel: YYB Hatsune Miku 10th by YYB'
+    // textblock.text = 'メランコリ・ナイト / melancholy night feat.初音ミク\n\nMusic & Lyrics by higma\nMotion by ほうき堂\nModel: YYB Hatsune Miku 10th by YYB'
     textblock.fontSize = 16
 
     textblock.textHorizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_LEFT

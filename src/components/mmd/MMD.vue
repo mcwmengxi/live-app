@@ -21,6 +21,7 @@ const mmdUrl = (await store.get('mmd_url')) as string
 const sVolume = ref((await store.get('volume')) as number)
 const sMmdCamera = ref((await store.get('is_mmd_camera')) as boolean)
 const sPaused = ref((await store.get('is_paused')) as boolean)
+console.log(mmdUrl, 'mmdUrl')
 
 function reload() {
   location.reload()
