@@ -17,18 +17,24 @@ import {
   MeshBuilder,
   DefaultRenderingPipeline,
   ImageProcessingConfiguration,
-  Material
+  Material,
+  TransformNode
 } from '@babylonjs/core'
 
 import * as GUI from '@babylonjs/gui'
 import type { ISceneBuilder, MMDOptions } from './MMDRuntime'
-import { BvmdLoader, MmdCamera, MmdPlayerControl, MmdRuntime, StreamAudioPlayer } from 'babylon-mmd'
+import { BvmdLoader, MmdCamera, MmdMesh, MmdPlayerControl, MmdRuntime, StreamAudioPlayer } from 'babylon-mmd'
 export class SceneBuilder implements ISceneBuilder {
   private _options: MMDOptions = {
     mmdUrl: 'mmdUrl',
     mmdCamera: true,
     paused: false,
     volume: 0.8
+  }
+  private resolveRelativePath(base: string, relative: string) {
+    const baseUrl = new URL(base)
+    const resolveUrl = new URL(relative, baseUrl)
+    return 'https://asset.localhost' + resolveUrl.pathname
   }
   public async build(canvas: HTMLCanvasElement, engine: Engine, mmdOptions: MMDOptions): Promise<Scene> {
     console.log('SceneBuilder build')
@@ -40,7 +46,9 @@ export class SceneBuilder implements ISceneBuilder {
     // https://noname0310.github.io/babylon-mmd/docs/quick-start/create-basic-scene/
     const settings = await fetch(mmdUrl).then(response => response.json())
     console.log('sets: ', settings)
-
+    const lastSlash = mmdUrl.lastIndexOf('/')
+    const baseUrl = mmdUrl.substring(0, lastSlash)
+    console.log('baseUrl: ', baseUrl)
     const pmxLoader = SceneLoader.GetPluginForExtension('.pmx') as any
     const materialBuilder = pmxLoader.materialBuilder
     materialBuilder.useAlphaEvaluation = false
@@ -57,10 +65,21 @@ export class SceneBuilder implements ISceneBuilder {
     }
 
     const scene = new Scene(engine)
-    scene.clearColor = new Color4(0.95, 0.95, 0.95, 1.0)
+    scene.autoClear = false
+    scene.clearColor = new Color4(0, 0, 0, 0)
+    // scene.clearColor = new Color4(0.95, 0.95, 0.95, 1.0)
+
+    // scaling for WebXR
+    const worldScale = 0.09
+    const mmdRoot = new TransformNode('mmdRoot', scene)
+    mmdRoot.scaling.scale(worldScale)
+    mmdRoot.position.z = 1
+
     const mmdCamera = new MmdCamera('mmdCamera', new Vector3(0, 10, 0), scene)
     mmdCamera.maxZ = 500
     mmdCamera.minZ = 0.1
+    mmdCamera.distance = -45
+    mmdCamera.parent = mmdRoot
 
     const camera = new ArcRotateCamera('arcRotateCamera', 0, 0, 45, new Vector3(0, 0, 0), scene)
     camera.maxZ = 500
@@ -69,6 +88,7 @@ export class SceneBuilder implements ISceneBuilder {
     camera.inertia = 0.8
     camera.speed = 10
 
+    // 添加光线、阴影和地面 light, shadow, and ground
     const hemisphericLight = new HemisphericLight('hemisphericLight', new Vector3(0, 1, 0), scene)
     hemisphericLight.intensity = 0.4
     hemisphericLight.specular = new Color3(0, 0, 0)
@@ -78,12 +98,12 @@ export class SceneBuilder implements ISceneBuilder {
     directionalLight.intensity = 0.8
     directionalLight.autoCalcShadowZBounds = false
     directionalLight.autoUpdateExtends = false
-    directionalLight.shadowMaxZ = 20
-    directionalLight.shadowMinZ = -15
-    directionalLight.orthoTop = 18
-    directionalLight.orthoBottom = -1
-    directionalLight.orthoLeft = -10
-    directionalLight.orthoRight = 10
+    directionalLight.shadowMaxZ = 20 * worldScale
+    directionalLight.shadowMinZ = -15 * worldScale
+    directionalLight.orthoTop = 18 * worldScale
+    directionalLight.orthoBottom = -1 * worldScale
+    directionalLight.orthoLeft = -10 * worldScale
+    directionalLight.orthoRight = 10 * worldScale
     directionalLight.shadowOrthoScale = 0
 
     const shadowGenerator = new ShadowGenerator(1024, directionalLight, true)
@@ -92,7 +112,21 @@ export class SceneBuilder implements ISceneBuilder {
     shadowGenerator.filteringQuality = ShadowGenerator.QUALITY_MEDIUM
     shadowGenerator.frustumEdgeFalloff = 0.1
 
-    // 启用物理效果
+    // 加载 mmd 背景
+    const backgrounds: string[] = settings.default_bg
+    backgrounds.forEach(async background => {
+      const trueUrl = this.resolveRelativePath(baseUrl, background)
+      const mmdBackGround = await SceneLoader.ImportMeshAsync(null, trueUrl, '', scene, event => {
+        updateLoadingText(1, `Loading background... ${event.loaded}/${event.total} (${Math.floor((event.loaded * 100) / event.total)}%)`)
+      }).then(result => result.meshes[0] as MmdMesh)
+
+      for (const mesh of mmdBackGround.metadata.meshes) {
+        mesh.parent = mmdRoot
+        mesh.receiveShadows = true
+      }
+      shadowGenerator.addShadowCaster(mmdBackGround)
+    })
+    // 启用物理效果, MMD Physics 还不能在大多数模型上正常工作
     // const mmdRuntime = new MmdRuntime(scene, new MmdPhysics(scene))
     const mmdRuntime = new MmdRuntime(scene)
     mmdRuntime.register(scene)
@@ -102,7 +136,6 @@ export class SceneBuilder implements ISceneBuilder {
     audioPlayer.preservesPitch = false
     audioPlayer.source = 'https://noname0310.github.io/web-mmd-viewer/melancholic_night/mmd_public/motion/melancholy_night/melancholy_night.mp3'
     mmdRuntime.setAudioPlayer(audioPlayer)
-    mmdRuntime.playAnimation()
 
     // 播放控制器
     // const mmdPlayerControl = new MmdPlayerControl(scene, mmdRuntime, audioPlayer)
@@ -149,19 +182,22 @@ export class SceneBuilder implements ISceneBuilder {
     loadingTexts = new Array(promises.length).fill('')
     const loadResults = await Promise.all(promises)
 
+    // 隐藏加载显示
     scene.onAfterRenderObservable.addOnce(() => engine.hideLoadingUI())
 
     mmdRuntime.setCamera(mmdCamera)
     mmdCamera.addAnimation(loadResults[0])
     mmdCamera.setAnimation('motion')
 
+    // loadResults[1].meshes[0] 始终是类型为 MmdMesh 的根网格
     const modelMesh = loadResults[1].meshes[0] as Mesh
     modelMesh.receiveShadows = true
+    // 阴影设置
     shadowGenerator.addShadowCaster(modelMesh)
     const mmdModel = mmdRuntime.createMmdModel(modelMesh)
     mmdModel.addAnimation(loadResults[0])
     mmdModel.setAnimation('motion')
-
+    mmdRuntime.playAnimation()
     // const bodyBone = modelMesh.skeleton!.bones.find(bone => bone.name === 'センター')
     // scene.onBeforeRenderObservable.add(() => {
     //   bodyBone!.getFinalMatrix().getTranslationToRef(directionalLight.position)
@@ -170,6 +206,8 @@ export class SceneBuilder implements ISceneBuilder {
 
     const ground = MeshBuilder.CreateGround('Ground', { width: 100, height: 100, subdivisions: 2, updatable: false }, scene)
     ground.receiveShadows = true
+    shadowGenerator.addShadowCaster(ground)
+
     const groundMaterial = (ground.material = new StandardMaterial('GroundMaterial', scene))
     groundMaterial.diffuseColor = new Color3(0.65, 0.65, 0.65)
     groundMaterial.specularPower = 128

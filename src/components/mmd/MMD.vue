@@ -49,7 +49,17 @@ onMounted(() => {
     true
   )
   // 创建引擎，第二个参数为开启抗锯齿
-  const engine = new Engine(mmdCanvas, true)
+  const engine = new Engine(mmdCanvas, true, {
+      preserveDrawingBuffer: false,
+      stencil: false,
+      antialias: false,
+      alpha: false,
+      premultipliedAlpha: false,
+      powerPreference: "high-performance",
+      doNotHandleTouchAction: true,
+      doNotHandleContextLost: true,
+      audioEngine: false
+  }, true)
 
   const options: MMDOptions = {
     mmdUrl: mmdUrl,
