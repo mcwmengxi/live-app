@@ -2,7 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use serde_json::json;
-use tauri::{Manager, PhysicalSize,PhysicalPosition, Position, Size, Wry};
+use tauri::{Manager, PhysicalPosition, PhysicalSize, Position, Size, Wry};
 use tauri_plugin_store::{with_store, StoreCollection};
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
@@ -10,8 +10,8 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
+mod cmds;
 mod tray;
-
 
 fn main() {
     tauri::Builder::default()
@@ -80,8 +80,8 @@ fn main() {
                     height: win_h * 6,
                 });
                 let pos = Position::Physical(PhysicalPosition {
-                  x: pos_x,
-                  y: pos_y-700,
+                    x: pos_x,
+                    y: pos_y - 700,
                 });
                 window.set_size(size).unwrap();
                 window.set_position(pos).unwrap();
@@ -101,7 +101,7 @@ fn main() {
                           // ])
                           // .on_menu_item_select()
         )
-        .on_system_tray_event(tray::handler)
+        .on_system_tray_event(tray::Tray::on_system_tray_event)
         .invoke_handler(tauri::generate_handler![greet])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
